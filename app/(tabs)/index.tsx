@@ -1,74 +1,160 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, SafeAreaView, Linking, TouchableOpacity } from 'react-native';
+import { useEffect, useState } from 'react';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+// Import Firebase services but handle errors gracefully
+let app: any, auth: any, db: any, storage: any;
+try {
+  const firebaseServices = require('../../src/services/firebase');
+  app = firebaseServices.app;
+  auth = firebaseServices.auth;
+  db = firebaseServices.db;
+  storage = firebaseServices.storage;
+} catch (error) {
+  console.error('Failed to import Firebase services:', error);
+}
 
 export default function HomeScreen() {
+  const [firebaseStatus, setFirebaseStatus] = useState<string>('Checking Firebase status...');
+  
+  useEffect(() => {
+    // Check Firebase connection status
+    if (app && auth && db && storage) {
+      setFirebaseStatus('Firebase successfully initialized!');
+    } else {
+      setFirebaseStatus('Firebase connection issue detected');
+    }
+    
+    console.log('Firebase app instance:', app ? 'Available' : 'Not available');
+    console.log('Auth service:', auth ? 'Available' : 'Not available');
+    console.log('Firestore service:', db ? 'Available' : 'Not available');
+    console.log('Storage service:', storage ? 'Available' : 'Not available');
+  }, []);
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.card}>
+          <Text style={styles.title}>FlightDelay App</Text>
+          <Text style={styles.subtitle}>New Clean Version</Text>
+          
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Firebase Status</Text>
+            <View style={styles.statusBox}>
+              <Text style={[
+                styles.statusText, 
+                firebaseStatus.includes('success') ? styles.successText : styles.pendingText
+              ]}>
+                {firebaseStatus}
+              </Text>
+              {!firebaseStatus.includes('success') && (
+                <TouchableOpacity 
+                  style={styles.configButton}
+                  onPress={() => {
+                    alert('To configure Firebase:\n1. Open the .env file\n2. Add your Firebase project details\n3. Restart the app');
+                  }}
+                >
+                  <Text style={styles.configButtonText}>How to Configure Firebase</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Features Coming Soon</Text>
+            <View style={styles.featureList}>
+              <Text style={styles.featureItem}>• User Authentication</Text>
+              <Text style={styles.featureItem}>• Document Upload</Text>
+              <Text style={styles.featureItem}>• Flight Status Tracking</Text>
+              <Text style={styles.featureItem}>• Compensation Claims</Text>
+            </View>
+          </View>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
   },
-  stepContainer: {
-    gap: 8,
+  scrollContainer: {
+    flexGrow: 1,
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  card: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+    width: '100%',
+    maxWidth: 500,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#2196F3',
+    textAlign: 'center',
     marginBottom: 8,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  subtitle: {
+    fontSize: 16,
+    color: '#757575',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#212121',
+    marginBottom: 12,
+  },
+  statusBox: {
+    backgroundColor: '#f5f5f5',
+    padding: 12,
+    borderRadius: 6,
+  },
+  statusText: {
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  successText: {
+    color: '#4CAF50',
+    fontWeight: 'bold',
+  },
+  pendingText: {
+    color: '#FF9800',
+  },
+  featureList: {
+    gap: 8,
+  },
+  featureItem: {
+    fontSize: 14,
+    color: '#424242',
+    paddingVertical: 4,
+  },
+  configButton: {
+    backgroundColor: '#2196F3',
+    borderRadius: 4,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    marginTop: 12,
+    alignSelf: 'center',
+  },
+  configButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });

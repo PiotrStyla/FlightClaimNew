@@ -1,6 +1,9 @@
 // Import polyfills first
 import './polyfills';
 
+// Import Firebase
+import { app, auth, db, storage } from './services/firebase';
+
 // Export a function to initialize the app
 export function initializeApp() {
   try {
@@ -13,8 +16,16 @@ export function initializeApp() {
       console.log('ERROR:', ...args);
     };
     
+    // Verify Firebase is initialized
+    if (app) {
+      console.log('Firebase has been initialized successfully');
+    }
+    
     console.log('App initialization completed successfully');
+    
+    return { app, auth, db, storage };
   } catch (error) {
     console.error('Error during app initialization:', error);
+    throw error;
   }
 }
