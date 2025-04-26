@@ -1,0 +1,9 @@
+[build]
+  command = "" # No build command needed, deploying pre-built site
+  publish = "dist"
+
+# Required for single-page apps (like React Native Web) to handle routing correctly
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
